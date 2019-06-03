@@ -11,7 +11,7 @@ an actual Android/iOS device:
     npm install --save react-native-audio-toolkit
     ```
 
-* Follow the platform specific steps for each platform you wish to support:
+* Follow the platform specific steps for each platform you wish to support. Note: `react-native link` will not work correctly for android and you'll still have to manually do step 1 below in order to avoid "Configuration with name 'default' not found."
 
 ### Android setup
 
@@ -57,23 +57,38 @@ an actual Android/iOS device:
     }
     ```
 
-4. (optional) If you wish to record audio, add the following permissions to
-    `android/app/src/main/AndroidManifest.xml`
+4. (optional) Doing specific tasks with this library requires adding permissions to your
+    Android manifest file, which can be found at `android/app/src/main/AndroidManifest.xml`
 
     ```xml
     <manifest ...>
 
+        <!-- If you want to play audio from a SD card (i.e. external storage),
+             you need to add this permission -->
+        <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+        <!-- If you want to play audio from a URL, you need to add these permissions -->
+        <uses-permission android:name="android.permission.INTERNET" />
+        <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+        <!-- If you want to record audio, you need to add this permission -->
         <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+        <!-- If you want to record audio to a SD card (i.e. external storage),
+             you need to add this permission -->
         <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
         ...
 
     </manifest>
     ```
 
-    This is to get permissions for recording audio and writing to external storage.
-
-    TODO: Android 6.0 permissions model once supported by React Native:
-    https://facebook.github.io/react-native/docs/known-issues.html#android-m-permissions
+    For versions of Android earlier than Android 6.0, the user is asked to agree to permission
+    when installing the app. However, on Android 6.0+ the app developer is responsible for
+    asking for permissions before they are required.
+    
+    For an example of this in action, check out the code in the ExampleApp at
+    `ExampleApp/src/App.js` or check out the documentation for
+    [PermissionsAndroid](https://facebook.github.io/react-native/docs/permissionsandroid).
 
 ### iOS setup
 
@@ -84,6 +99,11 @@ an actual Android/iOS device:
 3. Select your app from the Project Navigator, click on the `Build Phases` tab.
     Expand `Link Binary With Libraries`. Click the plus and add
     `libReactNativeAudioToolkit.a` from under Workspace.
+    
+4. Add a usage description to **Info.plist**.
+    ```<key>Privacy - Microphone Usage Description</key>
+       <string>This app requires access to your microphone</string>
+    ```
 
 ### Play some media!
 

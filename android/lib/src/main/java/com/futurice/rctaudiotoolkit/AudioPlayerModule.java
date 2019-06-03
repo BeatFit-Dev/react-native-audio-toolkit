@@ -6,6 +6,7 @@ import android.media.MediaPlayer;
 import android.media.PlaybackParams;
 import android.media.AudioAttributes;
 import android.media.AudioAttributes.Builder;
+import android.os.Build;
 import android.os.Environment;
 import android.os.PowerManager;
 import android.support.annotation.Nullable;
@@ -102,11 +103,14 @@ public class AudioPlayerModule extends ReactContextBaseJavaModule implements Med
     private WritableMap errObj(final String code, final String message, final boolean enableLog) {
         WritableMap err = Arguments.createMap();
 
-        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         String stackTraceString = "";
-
-        for (StackTraceElement e : stackTrace) {
-            stackTraceString += e.toString() + "\n";
+        try {
+            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+            for (StackTraceElement e : stackTrace) {
+                stackTraceString += (e != null ? e.toString() : "null") + "\n";
+            }
+        } catch (Exception e) {
+            stackTraceString = "Exception occurred while parsing stack trace";
         }
 
         err.putString("err", code);
@@ -328,11 +332,20 @@ public class AudioPlayerModule extends ReactContextBaseJavaModule implements Med
             this.looping = options.getBoolean("looping");
         }
 
-        if (options.hasKey("speed") || options.hasKey("pitch")) {
+        // `PlaybackParams` was only added in API 23
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && (options.hasKey("speed") || options.hasKey("pitch"))) {
             PlaybackParams params = new PlaybackParams();
 
+            boolean needToPauseAfterSet = false;
             if (options.hasKey("speed") && !options.isNull("speed")) {
-                params.setSpeed((float) options.getDouble("speed"));
+                // If the player wasn't already playing, then setting the speed value to a non-zero value
+                // will start it playing and we don't want that so we need to make sure to pause it straight
+                // after setting the speed value
+                boolean wasAlreadyPlaying = player.isPlaying();
+                float speedValue = (float) options.getDouble("speed");
+                needToPauseAfterSet = !wasAlreadyPlaying && speedValue != 0.0f;
+
+                params.setSpeed(speedValue);
             }
 
             if (options.hasKey("pitch") && !options.isNull("pitch")) {
@@ -340,11 +353,14 @@ public class AudioPlayerModule extends ReactContextBaseJavaModule implements Med
             }
 
             player.setPlaybackParams(params);
+
+            if (needToPauseAfterSet) {
+                player.pause();
+            }
         }
 
         callback.invoke();
     }
-
 
     @ReactMethod
     public void play(Integer playerId, Callback callback) {
@@ -425,6 +441,21 @@ public class AudioPlayerModule extends ReactContextBaseJavaModule implements Med
         }
     }
 
+    @ReactMethod
+    public void getCurrentTime(Integer playerId, Callback callback) {
+        MediaPlayer player = this.playerPool.get(playerId);
+        if (player == null) {
+            callback.invoke(errObj("notfound", "playerId " + playerId + " not found."));
+            return;
+        }
+
+        try {
+            callback.invoke(null, getInfo(player));
+        } catch (Exception e) {
+            callback.invoke(errObj("getCurrentTime", e.toString()));
+        }
+    }
+
     // Find playerId matching player from playerPool
     private Integer getPlayerId(MediaPlayer player) {
         for (Entry<Integer, MediaPlayer> entry : playerPool.entrySet()) {
@@ -435,7 +466,6 @@ public class AudioPlayerModule extends ReactContextBaseJavaModule implements Med
 
         return null;
     }
-
 
     @Override
     public void onBufferingUpdate(MediaPlayer player, int percent) {
