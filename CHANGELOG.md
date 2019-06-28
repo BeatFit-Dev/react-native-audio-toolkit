@@ -3,13 +3,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
-### BREAKING CHANGE
-- Android: Change namespace from `com.futurice.rctaudiotoolkit` to `com.reactnativecommunity.rctaudiotoolkit` which requires users to re-link library. This can be done manually or automatically during the update process via:
+## Unreleased
+
+## [2.0.1] - 2019-06-26
+### Fixed
+- Fixed iOS linking errors caused by change of folder structure
+
+## [2.0.0] - 2019-06-26
+### BREAKING CHANGES
+- Changed npm package name from `react-native-audio-toolkit` to `@react-native-community/audio-toolkit` and changed Android namespace from `com.futurice.rctaudiotoolkit` to `com.reactnativecommunity.rctaudiotoolkit`. These changes require users to reinstall and re-link the library to update to this version. This can be done manually or automatically during the update process via:
     ```
     react-native unlink react-native-audio-toolkit
-    npm install --save react-native-audio-toolkit@2.0.0
-    react-native link react-native-audio-toolkit
+    npm uninstall --save react-native-audio-toolkit
+    npm install --save @react-native-community/audio-toolkit
+    react-native link @react-native-community/audio-toolkit
     ```
 - Android: Remove permissions from library AndroidManifest and instead require users to add them. See [SETUP.md](https://github.com/react-native-community/react-native-audio-toolkit/blob/master/docs/SETUP.md) and PR [#148](https://github.com/react-native-community/react-native-audio-toolkit/pull/148) for more details
 
@@ -22,12 +29,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 - Specify exactly which files to include in npm package
+- Only import specific items from lodash to keep build size down
 - Android: `build.gradle` will use SDK version settings of the root project, if available
 - iOS: Buffer up to 10 seconds of audio before beginning playback
 
 ### Fixed
 - Fixed some incorrect examples in the documentation
 - Android: Guard against possible exceptions while parsing stack trace
+- Android: Guard against exceptions that can appear in onHostPause
 - Android: Fix build error related to defining `android:minSdkVersion` in the library's AndroidManifest
 - Android: Fix crash on devices running API level 22 or earlier
 - iOS: Fix `Player.pause()` not setting `PAUSED` state
@@ -86,7 +95,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Initial release.
 
 
-[Unreleased]: https://github.com/react-native-community/react-native-audio-toolkit/compare/dc2f04a35f388016aa294bcc80e7f553d1988037...HEAD
+[2.0.1]: https://github.com/react-native-community/react-native-audio-toolkit/compare/ed89597b2e319c9073f2156c81c48c7ff8a7993f...HEAD
+[2.0.0]: https://github.com/react-native-community/react-native-audio-toolkit/compare/dc2f04a35f388016aa294bcc80e7f553d1988037...ed89597b2e319c9073f2156c81c48c7ff8a7993f
 [1.0.6]: https://github.com/react-native-community/react-native-audio-toolkit/compare/4746870166fe4beb9fbf075d45fab952de4558d6...dc2f04a35f388016aa294bcc80e7f553d1988037
 [1.0.5]: https://github.com/react-native-community/react-native-audio-toolkit/compare/6a2641ebc6b6177fa29ac81b694ea2dd64d5a2cd...4746870166fe4beb9fbf075d45fab952de4558d6
 [1.0.4]: https://github.com/react-native-community/react-native-audio-toolkit/compare/eba2326941e9b2f4405e832ce5af0a85bf6817ef...6a2641ebc6b6177fa29ac81b694ea2dd64d5a2cd
